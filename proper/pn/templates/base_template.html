@@ -1,0 +1,188 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Page</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #FCF9FF;
+            margin: 0; /* Remove default margin */
+        }
+
+        .container-fluid {
+            display: flex;
+            height: 100vh;
+            padding: 0;
+        }
+
+        .sidebar {
+            background-color: #FFFFFF;
+            color: #000000;
+            padding: 20px;
+            border-radius: 0 10px 10px 0;
+            width: 250px; /* Adjust the width as needed */
+            margin-right: 10px; /* Add margin for better separation */
+        }
+
+        .nav-link {
+            color: #000000;
+            font-size: 20px;
+            margin-bottom: 10px;
+            transition: background-color 0.3s; /* Добавляем плавный переход */
+
+            /* Добавляем закругление краев */
+            border-radius: 10px;
+            padding: 10px; /* Увеличиваем отступы для увеличения области наведения */
+        }
+
+        .nav-link:hover {
+            background-color: rgba(239, 239, 239, 0.8); /* Прозрачный цвет с закругленными краями */
+        }
+
+        .ref-link {
+            color: #000000;
+            font-size: 20px;
+            margin-top: 20px; /* Отступ сверху */
+            margin-bottom: 20px; /* Отступ снизу */
+            padding: 10px 60px; /* Отступы слева и справа 60px, сверху и снизу 10px */
+        }
+
+        .ref-link:hover {
+            color: #ccc;
+            text-decoration: none;
+        }
+
+        .content {
+            padding: 60px;
+            flex-grow: 1;
+            border-radius: 10px;
+            text-align: center;
+            background-color: #FCF9FF;
+            color: #000000;
+        }
+
+        .links-content {
+            padding: 130px;
+            flex-grow: 1;
+            border-radius: 10px;
+            text-align: left;
+            background-color: #FCF9FF;
+            color: #000000;
+            margin-top: 20px; /* Отступ сверху */
+            margin-bottom: 20px; /* Отступ снизу */
+        }
+
+        .links-content .nav-item {
+            margin-bottom: 30px; /* Добавляем отступ между элементами списка */
+        }
+
+        .welcome-text {
+            margin-bottom: 20px;
+        }
+
+        .logout-link {
+            color: #007bff;
+            padding: 20px;
+            font-size: 20px;
+            display: flex;
+            justify-content: flex-end;
+            margin-right: 25px; /* Adjust the margin as needed */
+        }
+
+        .logout-link:hover {
+            text-decoration: none;
+            color: #0056b3;
+        }
+
+        .menu {
+            font-style: bold;
+            font-size: 20px;
+            margin-bottom: 64px;
+            text-align: center;
+            padding-top: 64px; /* Adjust the value as needed */
+        }
+
+        .pagination {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .pagination ul {
+            list-style: none;
+            padding: 0;
+            display: flex;
+        }
+
+        .pagination li {
+            margin: 0 5px;
+        }
+
+        .pagination a, .pagination .active {
+            padding: 8px 16px;
+            text-decoration: none;
+            color: #007bff;
+            background-color: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .pagination .disabled {
+            color: #868e96;
+            cursor: not-allowed;
+        }
+
+        .pagination .active {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="menu">
+                <a class="ref-link" href="{% url 'home' %}">
+                        <img src="{% static 'main-menu.png' %}" alt="Logout" width="50" height="50" style="margin-left: 15px;"></a>
+            </div>
+
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <img src="{% static 'menu_plan.png' %}" alt="Logout" width="50" height="50" style="margin-left: 15px;"> Menu plan</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <img src="{% static 'purchase.png' %}" alt="Logout" width="50" height="50" style="margin-left: 15px;"> Purchase</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <img src="{% static 'reports.png' %}" alt="Logout" width="50" height="50" style="margin-left: 15px;"> Reports</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'reference_tables' %}">
+                        <img src="{% static 'settings.png' %}" alt="Logout" width="50" height="50" style="margin-left: 15px;"> Settings</a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        {% block content %}{% endblock %}
+
+        <!-- Logout link -->
+        <div class="logout-link">
+            <a href="{% url 'login' %}" class="logout-link">
+                Logout <img src="{% static 'logout.png' %}" alt="Logout" width="32" height="32" style="margin-left: 7px;">
+            </a>
+        </div>
+    </div>
+</body>
+</html>

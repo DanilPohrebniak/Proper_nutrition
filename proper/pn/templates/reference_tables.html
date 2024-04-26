@@ -1,0 +1,22 @@
+{% extends 'base_template.html' %}
+{% load static %}
+
+{% block content %}
+    <!-- Add your main content here -->
+    <div class="links-content">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="ref-link" href="#">
+                    <img src="{% static 'dishes.png' %}" alt="Logout" width="50" height="50" style="margin-left: 7px;"> Dishes</a>
+            </li>
+            <li class="nav-item">
+                <a class="ref-link" href="{% url 'display_table' 'food' %}">
+                    <img src="{% static 'food.png' %}" alt="Logout" width="50" height="50" style="margin-left: 7px;"> Foods</a>
+            </li>
+            <li class="nav-item">
+                <a class="ref-link" href="{% url 'display_table' 'unit' %}">
+                    <img src="{% static 'weight.png' %}" alt="Logout" width="50" height="50" style="margin-left: 7px;"> Units of measurement</a>
+            </li>
+        </ul>
+    </div>
+{% endblock %}
