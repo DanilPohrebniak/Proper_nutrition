@@ -2,8 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from .models import  Food, Unit, Purchases, Foods_in_stock, User
-from .forms import UnitForm, FoodForm, PurchaseForm,FoodsInStockForm
+from .models import  Food, Unit, Purchases, FoodsInStock, User, Dish, DishIngredient
+from .forms import UnitForm, FoodForm, PurchaseForm,FoodsInStockForm, DishForm, DishIngredientsForm
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.forms import formset_factory
@@ -198,8 +198,8 @@ def add_document_view(request):
                 # Получаем или создаем объект Unit по имени (предполагаем, что у Food есть поле unit)
                 unit_obj, created = Unit.objects.get_or_create(name=food_obj.unit.name)
 
-                # Создаем или обновляем объект Foods_in_stock
-                foods_in_stock, created = Foods_in_stock.objects.get_or_create(
+                # Создаем или обновляем объект FoodsInStock
+                foods_in_stock, created = FoodsInStock.objects.get_or_create(
                     Document=document,
                     Food=food_obj,  # Получаем объект Food по имени
                     defaults={
@@ -254,7 +254,7 @@ def product_search(request):
 
 def edit_document_view(request, pk=None):
     document = get_object_or_404(Purchases, pk=pk)
-    foods_in_stock = Foods_in_stock.objects.filter(Document=document)
+    foods_in_stock = FoodsInStock.objects.filter(Document=document)
     form = PurchaseForm(instance=document)
 
     # Получаем все доступные варианты для выбора
@@ -266,7 +266,6 @@ def edit_document_view(request, pk=None):
         if form.is_valid():
             with transaction.atomic():  # Обеспечиваем атомарность операций
                 document = form.save()  # Сохраняем документ
-
                 # Обновляем связанные записи в табличной части
                 foods_list = request.POST.getlist('food[]')
                 quantity_list = request.POST.getlist('quantity[]')
@@ -279,13 +278,13 @@ def edit_document_view(request, pk=None):
                     sum_value = float(sum_value)
 
                     # Получаем или создаем объект Food по имени
-                    food_obj, created = Food.objects.get_or_create(name=ffood)
+                    food_obj, created = Food.objects.get_or_create(name=food)
 
                     # Получаем или создаем объект Unit по имени (предполагаем, что у food есть поле unit)
                     unit_obj, created = Unit.objects.get_or_create(name=food_obj.unit.name)
 
-                    # Создаем или обновляем объект Foods_in_stock
-                    foods_in_stock, created = Foods_in_stock.objects.get_or_create(
+                    # Создаем или обновляем объект FoodsInStock
+                    foods_in_stock, created = FoodsInStock.objects.get_or_create(
                         Document=document,
                         Food=food_obj,  # Получаем объект Food по имени
                         defaults={
@@ -327,3 +326,180 @@ def delete_document_view(request, pk=None):
     }
 
     return render(request, 'delete_document.html', context)
+
+def display_dishes(request):
+    documents = Dish.objects.all()
+
+    paginator = Paginator(documents, 10)  # 10 items per page
+    page = request.GET.get('page')
+
+    try:
+        items = paginator.page(page)
+    except PageNotAnInteger:
+        items = paginator.page(1)
+    except EmptyPage:
+        items = paginator.page(paginator.num_pages)
+
+    context = {
+        'documents': items,
+        'fields': [field.name for field in Purchases._meta.fields],
+        'document_fields': [{field.name: getattr(document, field.name) for field in document._meta.fields} for document
+                            in items],
+    }
+
+    return render(request, 'display_dishes.html', context)
+
+def add_dish_view(request):
+    DishIngredientsFormSet = formset_factory(DishIngredientsForm, extra=1, can_delete=True)
+
+    if request.method == 'POST':
+        form = DishForm(request.POST)
+        formset = DishIngredientsFormSet(request.POST, prefix='foods_formset')
+
+        foods_list = request.POST.getlist('food[]')
+        quantity_list = request.POST.getlist('quantity[]')
+
+        if form.is_valid():
+            document = form.save(commit=False)
+            document.save()
+
+            # Создаем списки для данных из таблицы
+            foods_list = request.POST.getlist('food[]')
+            quantity_list = request.POST.getlist('quantity[]')
+
+            # Получаем значения из объекта Document
+            document = Dish.objects.get(pk=document.id)
+
+            # Обрабатываем данные из списков
+            for food, quantity in zip(foods_list, quantity_list):
+                # Преобразуем значения в нужные типы данных
+                quantity = float(quantity)
+
+                # Получаем или создаем объект Food по имени
+                food_obj, created = Food.objects.get_or_create(name=food)
+
+                # Получаем или создаем объект Unit по имени (предполагаем, что у Food есть поле unit)
+                unit_obj, created = Unit.objects.get_or_create(name=food_obj.unit.name)
+
+                # Создаем или обновляем объект FoodsInStock
+                dish_ingredients, created = DishIngredient.objects.get_or_create(
+                    Dish=document,
+                    Food=food_obj,  # Получаем объект Food по имени
+                    defaults={
+                        'Unit': unit_obj,
+                        'Quantity': quantity
+                    }
+                )
+
+                # Если объект уже существует, обновляем его поля
+                if not created:
+                    dish_ingredients.Unit = unit_obj
+                    dish_ingredients.Quantity = quantity
+                    dish_ingredients.save()
+
+            return redirect('display_dishes')
+        else:
+            # Print errors to logs
+            print(form.errors, formset.errors)
+    else:
+        form = DishForm()
+        formset = DishIngredientsFormSet(prefix='foods_formset')
+
+    foods = Food.objects.all()
+
+    if 'search' in request.GET:
+        search_term = request.GET['search']
+        foods = foods.filter(name__icontains=search_term)
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        data = render(request, 'items/foods_table_ajax.html', {'foods': foods}).content
+        return JsonResponse({'data': data.decode('utf-8')})
+
+    foods_range = range(len(foods))
+
+    context = {
+        'form': form,
+        'formset': formset,
+        'foods': foods,
+        'foods_range': foods_range,
+    }
+
+    return render(request, 'add_dish.html', context)
+
+def edit_dish_view(request, pk=None):
+    document = get_object_or_404(Dish, pk=pk)
+    dish_ingredients = DishIngredient.objects.filter(Dish=document)
+    form = DishForm(instance=document)
+
+    # Получаем все доступные варианты для выбора
+    all_authors = User.objects.all()
+
+    if request.method == 'POST':
+        form = DishForm(request.POST, instance=document)
+
+        if form.is_valid():
+            with transaction.atomic():  # Обеспечиваем атомарность операций
+                document = form.save()  # Сохраняем документ
+                # Обновляем связанные записи в табличной части
+                foods_list = request.POST.getlist('food[]')
+                quantity_list = request.POST.getlist('quantity[]')
+
+                # Обрабатываем данные из списков
+                for food, quantity in zip(foods_list, quantity_list):
+                    # Преобразуем значения в нужные типы данных
+                    quantity = float(quantity)
+
+                    # Получаем или создаем объект Food по имени
+                    food_obj, created = Food.objects.get_or_create(name=food)
+
+                    # Получаем или создаем объект Unit по имени (предполагаем, что у food есть поле unit)
+                    unit_obj, created = Unit.objects.get_or_create(name=food_obj.unit.name)
+
+                    # Создаем или обновляем объект DishIngredients
+                    dish_ingredients, created = DishIngredient.objects.get_or_create(
+                        Dish=document,
+                        Food=food_obj,  # Получаем объект Food по имени
+                        defaults={
+                            'Unit': unit_obj,
+                            'Quantity': quantity
+                        }
+                    )
+
+                    # Если объект уже существует, обновляем его поля
+                    if not created:
+                        dish_ingredients.Unit = unit_obj
+                        dish_ingredients.Quantity = quantity
+                        dish_ingredients.save()
+
+                # Получаем ид ингредиентов для удаления из запроса
+                ingredients_to_delete_str = request.POST.get('ingredients_to_delete', '')
+                ingredients_to_delete = [int(x) for x in ingredients_to_delete_str.split(",") if x.strip()]
+
+                DishIngredient.objects.filter(id__in=ingredients_to_delete).delete()
+
+                return redirect('display_dishes')
+
+    foods = Food.objects.all()
+
+    context = {
+        'form': form,
+        'document': document,
+        'all_authors': all_authors,
+        'foods_in_stock': dish_ingredients,
+        'foods': foods,
+    }
+
+    return render(request, 'edit_dish.html', context)
+
+def delete_dish_view(request, pk=None):
+    document = get_object_or_404(Dish, pk=pk)
+
+    if request.method == 'POST':
+        document.delete()
+        return redirect('display_dishes')
+
+    context = {
+        'document': document,
+    }
+
+    return render(request, 'delete_dish.html', context)

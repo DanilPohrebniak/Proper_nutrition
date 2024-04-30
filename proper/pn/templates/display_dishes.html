@@ -6,11 +6,11 @@
 
     <div class="container">
         <div class="row justify-content-center mt-3">
-            <h2>Purchases</h2>
+            <h2>Dishes</h2>
         </div>
 
         <div class="row justify-content-left mb-3">
-            <a class="btn btn-primary" href="{% url 'add_document_view' %}">Add purchases</a>
+            <a class="btn btn-primary" href="{% url 'add_dish_view' %}">Add dish</a>
         </div>
 
         <div class="row justify-content-center">
@@ -18,28 +18,32 @@
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th>Date</th>
                             <th>Title</th>
                             <th>Author</th>
-                            <th>Amount</th>
+                            <th>Caloric value</th>
+                            <th>Proteins</th>
+                            <th>Fats</th>
+                            <th>Carbohydrates</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for document in documents %}
                             <tr>
-                                <td>{{ document.Date }}</td>
                                 <td>{{ document.Title }}</td>
                                 <td>{{ document.Author }}</td>
-                                <td>{{ document.Amount }}</td>
+                                <td>{{ document.Caloric_value }}</td>
+                                <td>{{ document.Proteins }}</td>
+                                <td>{{ document.Fats }}</td>
+                                <td>{{ document.Carbohydrates }}</td>
                                 <td>
                                     <div class="btn-group" role="group">
-                                        <form method="post" action="{% url 'edit_document_view' pk=document.id %}" style="display: inline;">
+                                        <form method="post" action="{% url 'edit_dish_view' pk=document.id %}" style="display: inline;">
                                             {% csrf_token %}
                                             <button type="submit" class="btn btn-warning">Edit</button>
                                         </form>
                                         &nbsp;
-                                        <form method="post" action="{% url 'delete_document_view' pk=document.id %}" style="display: inline;">
+                                        <form method="post" action="{% url 'delete_dish_view' pk=document.id %}" style="display: inline;">
                                             {% csrf_token %}
                                             <button type="submit" class="btn btn-danger">Delete</button>
                                         </form>

@@ -27,14 +27,36 @@ class Purchases(models.Model):
         verbose_name_plural = "Documents"
 
 
-class Foods_in_stock(models.Model):
+class FoodsInStock(models.Model):
     Date = models.DateField()
     Document = models.ForeignKey(Purchases, on_delete=models.CASCADE)
     Food = models.ForeignKey(Food, on_delete=models.CASCADE)
     Unit = models.ForeignKey(Unit, on_delete=models.CASCADE, default=1)
-    Quantity = models.DecimalField(max_digits=10, decimal_places=2)
+    Quantity = models.DecimalField(max_digits=10, decimal_places=3)
     Sum = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
     def __str__(self):
         return f"{self.Food} - {self.Quantity} ({self.Date})"
 
+
+class Dish(models.Model):
+    Title = models.CharField(max_length=255)
+    Author = models.ForeignKey(User, on_delete=models.CASCADE)
+    Caloric_value = models.DecimalField(max_digits=10, decimal_places=2)
+    Proteins = models.DecimalField(max_digits=10, decimal_places=2)
+    Fats = models.DecimalField(max_digits=10, decimal_places=2)
+    Carbohydrates = models.DecimalField(max_digits=10, decimal_places=2)
+    Cooking_instructions = models.TextField()
+    Photo = models.ImageField(upload_to='dish_photos/')
+
+    def __str__(self):
+        return self.Title
+
+class DishIngredient(models.Model):
+    Food = models.ForeignKey('Food', on_delete=models.CASCADE)
+    Unit = models.ForeignKey('Unit', on_delete=models.CASCADE)
+    Quantity = models.DecimalField(max_digits=10, decimal_places=3)
+    Dish = models.ForeignKey(Dish, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.Food} - {self.Quantity} {self.Unit}"

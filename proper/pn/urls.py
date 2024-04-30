@@ -11,4 +11,8 @@ urlpatterns = [
     path('add_doc/', views.add_document_view, name='add_document_view'),
     path('edit_doc/<int:pk>/', views.edit_document_view, name='edit_document_view'),
     path('delete_doc/<int:pk>/', views.delete_document_view, name='delete_document_view'),
+    path('display_dishes/', views.display_dishes, name='display_dishes'),
+    path('add_dish/', views.add_dish_view, name='add_dish_view'),
+    path('edit_dish/<int:pk>/', views.edit_dish_view, name='edit_dish_view'),
+    path('delete_dish/<int:pk>/', views.delete_dish_view, name='delete_dish_view'),
 ]

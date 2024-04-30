@@ -1,0 +1,127 @@
+{% extends 'base_template.html' %}
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+{% block title %}Edit {{ document_type|title }} Item{% endblock %}
+
+{% block content %}
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <form method="post" action="" class="rounded p-3" style="background-color: #f8f9fa;">
+                    {% csrf_token %}
+
+                    <div class="form-group">
+                        <label for="id_Title" class="font-weight-bold">Title</label>
+                        <input type="text" name="Title" id="id_Title" class="form-control" value="{{ document.Title }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="id_Author" class="font-weight-bold">Author</label>
+                        <select name="Author" id="id_Author" class="form-control">
+                            {% for author in all_authors %}
+                                <option value="{{ author.pk }}" {% if document.Author.pk == author.pk %} selected {% endif %}>{{ author }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="id_Caloric_value" class="font-weight-bold">Caloric Value</label>
+                        <input type="text" name="Caloric_value" id="id_Caloric_value" class="form-control" value="{{ document.Caloric_value }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="id_Proteins" class="font-weight-bold">Proteins</label>
+                        <input type="text" name="Proteins" id="id_Proteins" class="form-control" value="{{ document.Proteins }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="id_Fats" class="font-weight-bold">Fats</label>
+                        <input type="text" name="Fats" id="id_Fats" class="form-control" value="{{ document.Fats }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="id_Carbohydrates" class="font-weight-bold">Carbohydrates</label>
+                        <input type="text" name="Carbohydrates" id="id_Carbohydrates" class="form-control" value="{{ document.Carbohydrates }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="id_Cooking_instructions" class="font-weight-bold">Cooking instructions</label>
+                        <textarea name="Cooking_instructions" id="id_Cooking_instructions" class="form-control" rows="5" required>{{ document.Cooking_instructions }}</textarea>
+                    </div>
+
+                    <h4>Ingredients Table</h4>
+                    <button type="button" class="btn btn-success btn-sm" id="add-row">Add Row</button>
+                    <table class="table" id="foods-table">
+                        <thead>
+                            <tr>
+                                <th>Food</th>
+                                <th>Quantity</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="foods-table-body">
+                            {% for foods_item in foods_in_stock %}
+                                <tr>
+                                    <td>
+                                        <input type="text" name="food[]" class="form-control name-input" value="{{ foods_item.Food.name }}" list="food-dropdown" required>
+                                        <datalist id="food-dropdown">
+                                            {% for food in foods %}
+                                                <option value="{{ food.name }}" data-income="{{ food.income }}">
+                                            {% endfor %}
+                                        </datalist>
+                                    </td>
+                                    <td><input type="text" name="quantity[]" class="form-control" value="{{ foods_item.Quantity }}" required></td>
+                                    <td><button type="button" class="btn btn-danger btn-sm delete-row" data-ingredient-id="{{ foods_item.id }}">Delete</button></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                    <!-- Скрытое поле для хранения идентификаторов ингредиентов для удаления -->
+                    <input type="hidden" name="ingredients_to_delete" id="ingredients-to-delete">
+
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Add Bootstrap classes to form fields using JavaScript
+            var formFields = document.querySelectorAll('.form-group input, .form-group select, .form-group textarea');
+            formFields.forEach(function (field) {
+                field.classList.add('form-control', 'rounded');
+            });
+
+            // Add Row functionality
+            var addRowButton = document.getElementById('add-row');
+            var foodsTableBody = document.getElementById('foods-table-body');
+
+            addRowButton.addEventListener('click', function () {
+                var newRow = document.createElement('tr');
+                newRow.innerHTML = '<td><input type="text" name="food[]" class="form-control name-input" list="food-dropdown" required></td>' +
+                    '<td><input type="text" name="quantity[]" class="form-control" required></td>' +
+                    '<td><button type="button" class="btn btn-danger btn-sm delete-row">Delete</button></td>';
+
+                foodsTableBody.appendChild(newRow);
+            });
+
+            // Delete Row functionality
+            foodsTableBody.addEventListener('click', function (event) {
+                if (event.target.classList.contains('delete-row')) {
+                    var row = event.target.closest('tr');
+                    var ingredientId = row.querySelector('.delete-row').getAttribute('data-ingredient-id');
+                    var ingredientsToDeleteInput = document.getElementById('ingredients-to-delete');
+                    var ingredientsToDelete = ingredientsToDeleteInput.value.split(',');
+
+                    // Удаляем ингредиент из скрытого поля
+                    ingredientsToDelete.push(ingredientId);
+                    ingredientsToDeleteInput.value = ingredientsToDelete;
+
+                    // Удаляем строку из таблицы
+                    row.remove();
+                }
+            });
+        });
+    </script>
+{% endblock %}

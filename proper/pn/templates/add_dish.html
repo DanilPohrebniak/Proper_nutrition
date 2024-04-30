@@ -1,0 +1,100 @@
+{% extends 'base_template.html' %}
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+{% block title %}Add Item{% endblock %}
+
+{% block content %}
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <form method="post" action="" class="rounded p-3" style="background-color: #f8f9fa;">
+                    {% csrf_token %}
+
+                    {% for field in form %}
+                        <div class="form-group">
+                            <label for="{{ field.id_for_label }}" class="font-weight-bold">{{ field.label }}</label>
+                            {{ field }}
+                        </div>
+                    {% endfor %}
+
+                    <h4>Ingredients Table</h4>
+                    <button type="button" class="btn btn-success btn-sm" id="add-row">Add Row</button>
+                    <table class="table" id="foods-table">
+                        <thead>
+                            <tr>
+                                <th>Food</th>
+                                <th>Quantity</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="foods-table-body">
+                            <tr>
+                                <td>
+                                    <input type="text" name="food[]" class="form-control name-input" list="food-dropdown" required>
+                                    <datalist id="food-dropdown">
+                                        {% for food in foods %}
+                                            <option value="{{ food.name }}" data-income="{{ food.income }}">
+                                        {% endfor %}
+                                    </datalist>
+                                </td>
+                                <td><input type="text" name="quantity[]" class="form-control" required></td>
+                                <td><button type="button" class="btn btn-danger btn-sm delete-row">Delete</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Add Bootstrap classes to form fields using JavaScript
+            var formFields = document.querySelectorAll('.form-group input, .form-group select, .form-group textarea');
+            formFields.forEach(function (field) {
+                field.classList.add('form-control', 'rounded');
+            });
+
+            // Add Row functionality
+            var addRowButton = document.getElementById('add-row');
+            var foodsTableBody = document.getElementById('foods-table-body');
+
+            addRowButton.addEventListener('click', function () {
+                var newRow = document.createElement('tr');
+                newRow.innerHTML = '<td><input type="text" name="food[]" class="form-control name-input" list="food-dropdown" required></td>' +
+                    '<td><input type="text" name="quantity[]" class="form-control" required></td>' +
+                    '<td><button type="button" class="btn btn-danger btn-sm delete-row">Delete</button></td>';
+
+                foodsTableBody.appendChild(newRow);
+            });
+
+            // Delete Row functionality
+            foodsTableBody.addEventListener('click', function (event) {
+                if (event.target.classList.contains('delete-row')) {
+                    var rows = foodsTableBody.getElementsByTagName('tr');
+                    var deletedRow = event.target.closest('tr');
+                    var deletedFoodInput = deletedRow.querySelector('input[name="food[]"]');
+
+                    // Check if there is more than one row and the deleted row is not the first row
+                    if (rows.length > 1 && deletedRow.previousElementSibling) {
+                        // Remove the corresponding option in the datalist
+                        var foodDatalist = document.getElementById('food-dropdown');
+                        var options = foodDatalist.getElementsByTagName('option');
+                        for (var i = 0; i < options.length; i++) {
+                            if (options[i].value === deletedFoodInput.value) {
+                                options[i].remove();
+                                break;
+                            }
+                        }
+
+                        // Remove the row
+                        deletedRow.remove();
+                    } else {
+                        alert('Cannot delete the first row!');
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}
